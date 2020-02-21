@@ -41,6 +41,37 @@ If you encounter crash or error, try to upgrade your GPU driver
 - AMD: https://www.amd.com/en/support
 - NVIDIA: https://www.nvidia.com/Download/index.aspx
 
+## Sample Images
+
+### Original Image
+
+![origin](images/0.jpg)
+
+### Upscale 4x with ImageMagick Lanczo4 Filter
+
+```shell
+convert origin.jpg -resize 400% output.png
+```
+
+![browser](images/1.png)
+
+### Upscale 4x with waifu2x scale=2 model=upconv_7_photo twice
+
+```shell
+waifu2x-ncnn-vulkan.exe -i origin.jpg -o 2x.png -s 2 -m models-upconv_7_photo
+waifu2x-ncnn-vulkan.exe -i 2x.png -o 4x.png -s 2 -m models-upconv_7_photo
+```
+
+![waifu2x](images/w.png)
+
+### Upscale 4x with srmd noise=3 scale=4
+
+```shell
+srmd-ncnn-vulkan.exe -i origin.jpg -o output.png -n 3 -s 4
+```
+
+![srmd](images/2.png)
+
 ## Original SRMD Project
 
 - https://github.com/cszn/SRMD
