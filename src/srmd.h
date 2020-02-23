@@ -12,7 +12,7 @@
 class SRMD
 {
 public:
-    SRMD(int gpuid);
+    SRMD(int gpuid, bool tta_mode = false);
     ~SRMD();
 
 #if _WIN32
@@ -34,6 +34,7 @@ private:
     ncnn::Net net;
     ncnn::Pipeline* srmd_preproc;
     ncnn::Pipeline* srmd_postproc;
+    bool tta_mode;
 };
 
 #endif // SRMD_H
