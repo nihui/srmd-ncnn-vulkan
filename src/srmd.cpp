@@ -79,7 +79,7 @@ int SRMD::load(const std::string& parampath, const std::string& modelpath)
         FILE* fp = _wfopen(parampath.c_str(), L"rb");
         if (!fp)
         {
-            fwprintf(stderr, L"_wfopen %s failed\n", parampath);
+            fwprintf(stderr, L"_wfopen %ls failed\n", parampath.c_str());
         }
 
         net.load_param(fp);
@@ -90,7 +90,7 @@ int SRMD::load(const std::string& parampath, const std::string& modelpath)
         FILE* fp = _wfopen(modelpath.c_str(), L"rb");
         if (!fp)
         {
-            fwprintf(stderr, L"_wfopen %s failed\n", modelpath);
+            fwprintf(stderr, L"_wfopen %ls failed\n", modelpath.c_str());
         }
 
         net.load_model(fp);
@@ -166,20 +166,6 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
     ncnn::VkAllocator* blob_vkallocator = net.vulkan_device()->acquire_blob_allocator();
     ncnn::VkAllocator* staging_vkallocator = net.vulkan_device()->acquire_staging_allocator();
 
-    // prepadding
-    int prepadding_bottom = prepadding;
-    int prepadding_right = prepadding;
-    if (scale == 1)
-    {
-        prepadding_bottom += (h + 3) / 4 * 4 - h;
-        prepadding_right += (w + 3) / 4 * 4 - w;
-    }
-    if (scale == 2)
-    {
-        prepadding_bottom += (h + 1) / 2 * 2 - h;
-        prepadding_right += (w + 1) / 2 * 2 - w;
-    }
-
     // each tile 400x400
     int xtiles = (w + TILE_SIZE_X - 1) / TILE_SIZE_X;
     int ytiles = (h + TILE_SIZE_Y - 1) / TILE_SIZE_Y;
@@ -188,7 +174,7 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
     for (int yi = 0; yi < ytiles; yi++)
     {
         int in_tile_y0 = std::max(yi * TILE_SIZE_Y - prepadding, 0);
-        int in_tile_y1 = std::min((yi + 1) * TILE_SIZE_Y + prepadding_bottom, h);
+        int in_tile_y1 = std::min((yi + 1) * TILE_SIZE_Y + prepadding, h);
 
         ncnn::Mat in;
         if (net.opt.use_fp16_storage && net.opt.use_int8_storage)
@@ -245,9 +231,9 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
                 {
                     // crop tile
                     int tile_x0 = xi * TILE_SIZE_X;
-                    int tile_x1 = std::min((xi + 1) * TILE_SIZE_X, w) + prepadding + prepadding_right;
+                    int tile_x1 = std::min((xi + 1) * TILE_SIZE_X, w) + prepadding + prepadding;
                     int tile_y0 = yi * TILE_SIZE_Y;
-                    int tile_y1 = std::min((yi + 1) * TILE_SIZE_Y, h) + prepadding + prepadding_bottom;
+                    int tile_y1 = std::min((yi + 1) * TILE_SIZE_Y, h) + prepadding + prepadding;
 
                     in_tile_gpu[0].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
                     in_tile_gpu[1].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
@@ -339,9 +325,9 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
                 {
                     // crop tile
                     int tile_x0 = xi * TILE_SIZE_X;
-                    int tile_x1 = std::min((xi + 1) * TILE_SIZE_X, w) + prepadding + prepadding_right;
+                    int tile_x1 = std::min((xi + 1) * TILE_SIZE_X, w) + prepadding + prepadding;
                     int tile_y0 = yi * TILE_SIZE_Y;
-                    int tile_y1 = std::min((yi + 1) * TILE_SIZE_Y, h) + prepadding + prepadding_bottom;
+                    int tile_y1 = std::min((yi + 1) * TILE_SIZE_Y, h) + prepadding + prepadding;
 
                     in_tile_gpu.create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
 
