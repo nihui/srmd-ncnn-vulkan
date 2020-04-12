@@ -120,34 +120,34 @@ int SRMD::load(const std::string& parampath, const std::string& modelpath)
         if (tta_mode)
         {
             if (net.opt.use_fp16_storage && net.opt.use_int8_storage)
-                srmd_preproc->create(srmd_preproc_tta_int8s_spv_data, sizeof(srmd_preproc_tta_int8s_spv_data), "srmd_preproc_tta_int8s", specializations, 9, 10);
+                srmd_preproc->create(srmd_preproc_tta_int8s_spv_data, sizeof(srmd_preproc_tta_int8s_spv_data), specializations);
             else if (net.opt.use_fp16_storage)
-                srmd_preproc->create(srmd_preproc_tta_fp16s_spv_data, sizeof(srmd_preproc_tta_fp16s_spv_data), "srmd_preproc_tta_fp16s", specializations, 9, 10);
+                srmd_preproc->create(srmd_preproc_tta_fp16s_spv_data, sizeof(srmd_preproc_tta_fp16s_spv_data), specializations);
             else
-                srmd_preproc->create(srmd_preproc_tta_spv_data, sizeof(srmd_preproc_tta_spv_data), "srmd_preproc_tta", specializations, 9, 10);
+                srmd_preproc->create(srmd_preproc_tta_spv_data, sizeof(srmd_preproc_tta_spv_data), specializations);
 
             if (net.opt.use_fp16_storage && net.opt.use_int8_storage)
-                srmd_postproc->create(srmd_postproc_tta_int8s_spv_data, sizeof(srmd_postproc_tta_int8s_spv_data), "srmd_postproc_tta_int8s", specializations, 9, 10);
+                srmd_postproc->create(srmd_postproc_tta_int8s_spv_data, sizeof(srmd_postproc_tta_int8s_spv_data), specializations);
             else if (net.opt.use_fp16_storage)
-                srmd_postproc->create(srmd_postproc_tta_fp16s_spv_data, sizeof(srmd_postproc_tta_fp16s_spv_data), "srmd_postproc_tta_fp16s", specializations, 9, 10);
+                srmd_postproc->create(srmd_postproc_tta_fp16s_spv_data, sizeof(srmd_postproc_tta_fp16s_spv_data), specializations);
             else
-                srmd_postproc->create(srmd_postproc_tta_spv_data, sizeof(srmd_postproc_tta_spv_data), "srmd_postproc_tta", specializations, 9, 10);
+                srmd_postproc->create(srmd_postproc_tta_spv_data, sizeof(srmd_postproc_tta_spv_data), specializations);
         }
         else
         {
             if (net.opt.use_fp16_storage && net.opt.use_int8_storage)
-                srmd_preproc->create(srmd_preproc_int8s_spv_data, sizeof(srmd_preproc_int8s_spv_data), "srmd_preproc_int8s", specializations, 2, 10);
+                srmd_preproc->create(srmd_preproc_int8s_spv_data, sizeof(srmd_preproc_int8s_spv_data), specializations);
             else if (net.opt.use_fp16_storage)
-                srmd_preproc->create(srmd_preproc_fp16s_spv_data, sizeof(srmd_preproc_fp16s_spv_data), "srmd_preproc_fp16s", specializations, 2, 10);
+                srmd_preproc->create(srmd_preproc_fp16s_spv_data, sizeof(srmd_preproc_fp16s_spv_data), specializations);
             else
-                srmd_preproc->create(srmd_preproc_spv_data, sizeof(srmd_preproc_spv_data), "srmd_preproc", specializations, 2, 10);
+                srmd_preproc->create(srmd_preproc_spv_data, sizeof(srmd_preproc_spv_data), specializations);
 
             if (net.opt.use_fp16_storage && net.opt.use_int8_storage)
-                srmd_postproc->create(srmd_postproc_int8s_spv_data, sizeof(srmd_postproc_int8s_spv_data), "srmd_postproc_int8s", specializations, 2, 10);
+                srmd_postproc->create(srmd_postproc_int8s_spv_data, sizeof(srmd_postproc_int8s_spv_data), specializations);
             else if (net.opt.use_fp16_storage)
-                srmd_postproc->create(srmd_postproc_fp16s_spv_data, sizeof(srmd_postproc_fp16s_spv_data), "srmd_postproc_fp16s", specializations, 2, 10);
+                srmd_postproc->create(srmd_postproc_fp16s_spv_data, sizeof(srmd_postproc_fp16s_spv_data), specializations);
             else
-                srmd_postproc->create(srmd_postproc_spv_data, sizeof(srmd_postproc_spv_data), "srmd_postproc", specializations, 2, 10);
+                srmd_postproc->create(srmd_postproc_spv_data, sizeof(srmd_postproc_spv_data), specializations);
         }
     }
 
@@ -165,6 +165,11 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
 
     ncnn::VkAllocator* blob_vkallocator = net.vulkan_device()->acquire_blob_allocator();
     ncnn::VkAllocator* staging_vkallocator = net.vulkan_device()->acquire_staging_allocator();
+
+    ncnn::Option opt = net.opt;
+    opt.blob_vkallocator = blob_vkallocator;
+    opt.workspace_vkallocator = blob_vkallocator;
+    opt.staging_vkallocator = staging_vkallocator;
 
     // each tile 400x400
     int xtiles = (w + TILE_SIZE_X - 1) / TILE_SIZE_X;
@@ -195,12 +200,7 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
         // upload
         ncnn::VkMat in_gpu;
         {
-            in_gpu.create_like(in, blob_vkallocator, staging_vkallocator);
-
-            in_gpu.prepare_staging_buffer();
-            in_gpu.upload(in);
-
-            cmd.record_upload(in_gpu);
+            cmd.record_upload(in, in_gpu, opt);
 
             if (xtiles > 1)
             {
@@ -215,11 +215,11 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
         ncnn::VkMat out_gpu;
         if (net.opt.use_fp16_storage && net.opt.use_int8_storage)
         {
-            out_gpu.create(w * scale, (out_tile_y1 - out_tile_y0) * scale, (size_t)3u, 1, blob_vkallocator, staging_vkallocator);
+            out_gpu.create(w * scale, (out_tile_y1 - out_tile_y0) * scale, (size_t)3u, 1, blob_vkallocator);
         }
         else
         {
-            out_gpu.create(w * scale, (out_tile_y1 - out_tile_y0) * scale, 3, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
+            out_gpu.create(w * scale, (out_tile_y1 - out_tile_y0) * scale, 3, (size_t)4u, 1, blob_vkallocator);
         }
 
         for (int xi = 0; xi < xtiles; xi++)
@@ -235,14 +235,14 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
                     int tile_y0 = yi * TILE_SIZE_Y;
                     int tile_y1 = std::min((yi + 1) * TILE_SIZE_Y, h) + prepadding + prepadding;
 
-                    in_tile_gpu[0].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
-                    in_tile_gpu[1].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
-                    in_tile_gpu[2].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
-                    in_tile_gpu[3].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
-                    in_tile_gpu[4].create(tile_y1 - tile_y0, tile_x1 - tile_x0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
-                    in_tile_gpu[5].create(tile_y1 - tile_y0, tile_x1 - tile_x0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
-                    in_tile_gpu[6].create(tile_y1 - tile_y0, tile_x1 - tile_x0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
-                    in_tile_gpu[7].create(tile_y1 - tile_y0, tile_x1 - tile_x0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
+                    in_tile_gpu[0].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator);
+                    in_tile_gpu[1].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator);
+                    in_tile_gpu[2].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator);
+                    in_tile_gpu[3].create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator);
+                    in_tile_gpu[4].create(tile_y1 - tile_y0, tile_x1 - tile_x0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator);
+                    in_tile_gpu[5].create(tile_y1 - tile_y0, tile_x1 - tile_x0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator);
+                    in_tile_gpu[6].create(tile_y1 - tile_y0, tile_x1 - tile_x0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator);
+                    in_tile_gpu[7].create(tile_y1 - tile_y0, tile_x1 - tile_x0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator);
 
                     std::vector<ncnn::VkMat> bindings(9);
                     bindings[0] = in_gpu;
@@ -329,7 +329,7 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
                     int tile_y0 = yi * TILE_SIZE_Y;
                     int tile_y1 = std::min((yi + 1) * TILE_SIZE_Y, h) + prepadding + prepadding;
 
-                    in_tile_gpu.create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator, staging_vkallocator);
+                    in_tile_gpu.create(tile_x1 - tile_x0, tile_y1 - tile_y0, noise == -1 ? 18 : 19, (size_t)4u, 1, blob_vkallocator);
 
                     std::vector<ncnn::VkMat> bindings(2);
                     bindings[0] = in_gpu;
@@ -400,29 +400,25 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
 
         // download
         {
-            out_gpu.prepare_staging_buffer();
-            cmd.record_download(out_gpu);
+            ncnn::Mat out;
+
+            if (net.opt.use_fp16_storage && net.opt.use_int8_storage)
+            {
+                out = ncnn::Mat(out_gpu.w, out_gpu.h, (unsigned char*)outimage.data + yi * scale * TILE_SIZE_Y * w * scale * 3, (size_t)3u, 1);
+            }
+
+            cmd.record_download(out_gpu, out, opt);
 
             cmd.submit_and_wait();
-        }
 
-        if (net.opt.use_fp16_storage && net.opt.use_int8_storage)
-        {
-            ncnn::Mat out(out_gpu.w, out_gpu.h, (unsigned char*)outimage.data + yi * scale * TILE_SIZE_Y * w * scale * 3, (size_t)3u, 1);
-
-            out_gpu.download(out);
-        }
-        else
-        {
-            ncnn::Mat out;
-            out.create_like(out_gpu, net.opt.blob_allocator);
-            out_gpu.download(out);
-
+            if (!(net.opt.use_fp16_storage && net.opt.use_int8_storage))
+            {
 #if _WIN32
-            out.to_pixels((unsigned char*)outimage.data + yi * scale * TILE_SIZE_Y * w * scale * 3, ncnn::Mat::PIXEL_RGB2BGR);
+                out.to_pixels((unsigned char*)outimage.data + yi * scale * TILE_SIZE_Y * w * scale * 3, ncnn::Mat::PIXEL_RGB2BGR);
 #else
-            out.to_pixels((unsigned char*)outimage.data + yi * scale * TILE_SIZE_Y * w * scale * 3, ncnn::Mat::PIXEL_RGB);
+                out.to_pixels((unsigned char*)outimage.data + yi * scale * TILE_SIZE_Y * w * scale * 3, ncnn::Mat::PIXEL_RGB);
 #endif
+            }
         }
     }
 
