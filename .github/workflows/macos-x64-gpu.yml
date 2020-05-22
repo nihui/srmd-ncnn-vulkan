@@ -28,7 +28,6 @@ jobs:
       run: |
         mkdir srmd-ncnn-vulkan-artifact
         strip build/srmd-ncnn-vulkan
-        chmod +x build/srmd-ncnn-vulkan
         cp -v build/srmd-ncnn-vulkan srmd-ncnn-vulkan-artifact
         cp -v -r models/* srmd-ncnn-vulkan-artifact
     - uses: actions/upload-artifact@v2
