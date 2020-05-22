@@ -200,7 +200,7 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
         // upload
         ncnn::VkMat in_gpu;
         {
-            cmd.record_upload(in, in_gpu, opt);
+            cmd.record_clone(in, in_gpu, opt);
 
             if (xtiles > 1)
             {
@@ -407,7 +407,7 @@ int SRMD::process(const ncnn::Mat& inimage, ncnn::Mat& outimage) const
                 out = ncnn::Mat(out_gpu.w, out_gpu.h, (unsigned char*)outimage.data + yi * scale * TILE_SIZE_Y * w * scale * 3, (size_t)3u, 1);
             }
 
-            cmd.record_download(out_gpu, out, opt);
+            cmd.record_clone(out_gpu, out, opt);
 
             cmd.submit_and_wait();
 

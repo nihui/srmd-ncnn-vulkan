@@ -63,9 +63,18 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 
-# change these path to yours
-set(ncnn_DIR "/home/nihui/dev/ncnn/build/install/lib/cmake/ncnn")
-find_package(ncnn REQUIRED)
+# build ncnn library
+option(NCNN_INSTALL_SDK "" OFF)
+option(NCNN_PIXEL_ROTATE "" OFF)
+option(NCNN_VULKAN "" ON)
+option(NCNN_VULKAN_ONLINE_SPIRV "" ON)
+option(NCNN_BUILD_BENCHMARK "" OFF)
+option(NCNN_BUILD_TESTS "" OFF)
+option(NCNN_BUILD_TOOLS "" OFF)
+option(NCNN_BUILD_EXAMPLES "" OFF)
+option(NCNN_DISABLE_RTTI "" ON)
+option(NCNN_DISABLE_EXCEPTION "" ON)
+add_subdirectory(ncnn)
 
 # look for vulkan compute shader and compile
 set(SHADER_SPV_HEX_FILES)
