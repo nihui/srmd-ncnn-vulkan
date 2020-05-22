@@ -183,12 +183,16 @@ if(USE_STATIC_MOLTENVK)
     find_library(Foundation NAMES Foundation)
     find_library(Metal NAMES Metal)
     find_library(QuartzCore NAMES QuartzCore)
+    find_library(CoreGraphics NAMES CoreGraphics)
+    find_library(Cocoa NAMES Cocoa)
     find_library(IOKit NAMES IOKit)
     find_library(IOSurface NAMES IOSurface)
 
     list(APPEND SRMD_LINK_LIBRARIES
         ${Metal}
         ${QuartzCore}
+        ${CoreGraphics}
+        ${Cocoa}
         ${IOKit}
         ${IOSurface}
         ${Foundation}
