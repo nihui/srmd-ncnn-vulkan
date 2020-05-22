@@ -26,3 +26,7 @@ jobs:
         cmake ../src
     - name: build
       run: cmake --build build --config Release -j 2
+    - uses: actions/upload-artifact@v2
+      with:
+        name: srmd-ncnn-vulkan
+        path: build/Release/srmd-ncnn-vulkan.exe
