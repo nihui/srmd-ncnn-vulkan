@@ -33,5 +33,5 @@ jobs:
         Copy-Item -Verbose -Recurse -Path "models\*" -Destination "srmd-ncnn-vulkan-artifact"
     - uses: actions/upload-artifact@v2
       with:
-        name: srmd-ncnn-vulkan-artifact
+        name: srmd-ncnn-vulkan-artifact-windows
         path: srmd-ncnn-vulkan-artifact
