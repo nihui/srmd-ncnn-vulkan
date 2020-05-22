@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 
 set(CMAKE_BUILD_TYPE Release)
 
+find_package(Threads)
 find_package(OpenMP)
 find_package(Vulkan REQUIRED)
 
