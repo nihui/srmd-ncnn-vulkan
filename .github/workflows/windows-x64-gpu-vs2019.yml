@@ -28,10 +28,10 @@ jobs:
       run: cmake --build build --config Release -j 2
     - name: deploy
       run: |
-        mkdir "$env:GITHUB_WORKSPACE\srmd-ncnn-vulkan-artifact"
-        Copy-Item -Path "build\Release\srmd-ncnn-vulkan.exe" -Destination "$env:GITHUB_WORKSPACE\srmd-ncnn-vulkan-artifact"
-        Copy-Item -Path "models\*" -Destination "$env:GITHUB_WORKSPACE\srmd-ncnn-vulkan-artifact"
+        mkdir srmd-ncnn-vulkan-artifact
+        Copy-Item -Path "build\Release\srmd-ncnn-vulkan.exe" -Destination "srmd-ncnn-vulkan-artifact"
+        Copy-Item -Path "models\*" -Destination "srmd-ncnn-vulkan-artifact"
     - uses: actions/upload-artifact@v2
       with:
-        name: srmd-ncnn-vulkan
-        path: "$env:GITHUB_WORKSPACE\srmd-ncnn-vulkan-artifact"
+        name: srmd-ncnn-vulkan-artifact
+        path: srmd-ncnn-vulkan-artifact
