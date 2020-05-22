@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.1)
 
 set(CMAKE_BUILD_TYPE Release)
 
+option(USE_STATIC_MOLTENVK "link moltenvk static library" OFF)
+
 find_package(Threads)
 find_package(OpenMP)
 find_package(Vulkan REQUIRED)
@@ -174,8 +176,28 @@ add_executable(srmd-ncnn-vulkan main.cpp srmd.cpp)
 
 add_dependencies(srmd-ncnn-vulkan generate-spirv)
 
-if(OPENMP_FOUND)
-    target_link_libraries(srmd-ncnn-vulkan ncnn ${Vulkan_LIBRARY} ${OpenMP_CXX_LIBRARIES})
-else()
-    target_link_libraries(srmd-ncnn-vulkan ncnn ${Vulkan_LIBRARY})
+set(SRMD_LINK_LIBRARIES ncnn ${Vulkan_LIBRARY})
+
+if(USE_STATIC_MOLTENVK)
+    find_library(CoreFoundation NAMES CoreFoundation)
+    find_library(Foundation NAMES Foundation)
+    find_library(Metal NAMES Metal)
+    find_library(QuartzCore NAMES QuartzCore)
+    find_library(IOKit NAMES IOKit)
+    find_library(IOSurface NAMES IOSurface)
+
+    list(APPEND SRMD_LINK_LIBRARIES
+        ${Metal}
+        ${QuartzCore}
+        ${IOKit}
+        ${IOSurface}
+        ${Foundation}
+        ${CoreFoundation}
+    )
 endif()
+
+if(OPENMP_FOUND)
+    list(APPEND SRMD_LINK_LIBRARIES ${OpenMP_CXX_LIBRARIES})
+endif()
+
+target_link_libraries(srmd-ncnn-vulkan ${SRMD_LINK_LIBRARIES})

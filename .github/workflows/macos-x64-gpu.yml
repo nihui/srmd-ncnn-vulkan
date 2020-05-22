@@ -21,7 +21,7 @@ jobs:
         rm -rf vulkansdk-macos-1.1.114.0/Applications
         find vulkansdk-macos-1.1.114.0 -type f | grep -v -E 'vulkan|glslang|MoltenVK' | xargs rm
     - name: configure
-      run: export VULKAN_SDK=`pwd`/vulkansdk-macos-1.1.114.0/macOS && mkdir build && cd build && cmake -DVulkan_LIBRARY=`pwd`/../vulkansdk-macos-1.1.114.0/MoltenVK/macOS/framework/MoltenVK.framework/MoltenVK ../src
+      run: export VULKAN_SDK=`pwd`/vulkansdk-macos-1.1.114.0/macOS && mkdir build && cd build && cmake -DUSE_STATIC_MOLTENVK=ON -DVulkan_LIBRARY=`pwd`/../vulkansdk-macos-1.1.114.0/MoltenVK/macOS/framework/MoltenVK.framework/MoltenVK ../src
     - name: build
       run: cmake --build build -j 2
     - name: deploy
