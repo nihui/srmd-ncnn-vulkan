@@ -29,8 +29,8 @@ jobs:
     - name: deploy
       run: |
         mkdir srmd-ncnn-vulkan-artifact
-        Copy-Item -Path "build\Release\srmd-ncnn-vulkan.exe" -Destination "srmd-ncnn-vulkan-artifact"
-        Copy-Item -Path "models\*" -Destination "srmd-ncnn-vulkan-artifact"
+        Copy-Item -Verbose -Path "build\Release\srmd-ncnn-vulkan.exe" -Destination "srmd-ncnn-vulkan-artifact"
+        Copy-Item -Verbose -Recurse -Path "models\*" -Destination "srmd-ncnn-vulkan-artifact"
     - uses: actions/upload-artifact@v2
       with:
         name: srmd-ncnn-vulkan-artifact
