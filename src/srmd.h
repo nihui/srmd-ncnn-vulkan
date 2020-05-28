@@ -8,6 +8,7 @@
 // ncnn
 #include "net.h"
 #include "gpu.h"
+#include "layer.h"
 
 class SRMD
 {
@@ -34,6 +35,9 @@ private:
     ncnn::Net net;
     ncnn::Pipeline* srmd_preproc;
     ncnn::Pipeline* srmd_postproc;
+    ncnn::Layer* bicubic_2x;
+    ncnn::Layer* bicubic_3x;
+    ncnn::Layer* bicubic_4x;
     bool tta_mode;
 };
 
