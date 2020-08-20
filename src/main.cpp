@@ -785,7 +785,7 @@ int main(int argc, char** argv)
         {
             srmd[i] = new SRMD(gpuid[i], tta_mode);
 
-            srmd[i]->load(parampath, modelpath);
+            srmd[i]->load(paramfullpath, modelfullpath);
 
             srmd[i]->noise = noise;
             srmd[i]->scale = scale;
