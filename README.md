@@ -1,6 +1,7 @@
 # SRMD ncnn Vulkan
 
 ![CI](https://github.com/nihui/srmd-ncnn-vulkan/workflows/CI/badge.svg)
+![download](https://img.shields.io/github/downloads/nihui/srmd-ncnn-vulkan/total.svg)
 
 ncnn implementation of SRMD super resolution.
 
